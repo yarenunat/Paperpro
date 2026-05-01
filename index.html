@@ -1,22 +1,35 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Paper Pro</title>
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Paper Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="toolbar">
+        <div class="tool-group">
+            <button class="tool active" data-tool="pen" title="Dolma Kalem">✒️</button>
+            <button class="tool" data-tool="pencil" title="Kurşun Kalem">✏️</button>
+            <button class="tool" data-tool="watercolor" title="Sulu Boya">🖌️</button>
+            <button class="tool" data-tool="eraser" title="Silgi">🧽</button>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="action-group">
+            <input type="color" id="colorPicker" value="#1a1a1a" title="Renk Seç">
+            <button id="undoBtn" title="Geri Al">↩️</button>
+            <button id="clearBtn" title="Sayfayı Temizle">🗑️</button>
+            <button id="saveBtn" title="Yeni Sayfa / Kaydet">💾</button>
+        </div>
+    </div>
 
-<canvas id="canvas"></canvas>
-
-<div class="toolbar">
-  <button onclick="setTool('pen')">✏️</button>
-  <button onclick="setTool('eraser')">🧽</button>
-  <button onclick="newPage()">📄</button>
-</div>
-
-<script src="db.js"></script>
-<script src="app.js"></script>
+    <script src="db.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
+
