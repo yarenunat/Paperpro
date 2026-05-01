@@ -1,0 +1,24 @@
+body {
+margin:0;
+overflow:hidden;
+background:#fafafa;
+font-family:-apple-system;
+}
+canvas { position:absolute; top:0; left:0;}
+.toolbar{
+position:fixed;
+bottom:30px;
+left:50%;
+transform:translateX(-50%);
+backdrop-filter:blur(20px);
+background:rgba(0,0,0,0.4);
+padding:10px 20px;
+border-radius:30px;
+}
+button{
+background:none;
+border:none;
+color:white;
+font-size:20px;
+margin:0 10px;
+}
