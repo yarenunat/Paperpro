@@ -7,55 +7,96 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Üst Kontrol Çubuğu -->
-    <div class="top-nav">
-        <button id="clearBtn" class="icon-btn" title="Sayfayı Temizle">✕</button>
-        <div class="history-btns">
-            <button id="undoBtn" class="icon-btn" title="Geri Al">↶</button>
+
+    <!-- DEFTER SEÇME EKRANI (Journal View) -->
+    <div id="journal-screen" class="screen active">
+        <div class="top-bar">
+            <span class="logo">📚 Paper Store</span>
+            <div class="actions">
+                <button class="icon-btn-light">🔍</button>
+                <button class="icon-btn-light">≡</button>
+            </div>
+        </div>
+
+        <div class="header-text">
+            <h1>Design Project</h1>
+            <p>56 Pages</p>
+        </div>
+
+        <!-- Defterler (Carousel) -->
+        <div class="journals-container">
+            <div class="journal" style="background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);"></div>
+            <div class="journal" style="background: url('https://www.transparenttextures.com/patterns/cubes.png'), #e74c3c;"></div>
+            
+            <!-- Aktif Seçili Defter -->
+            <div class="journal active-journal" id="openJournalBtn">
+                <div class="journal-cover">
+                    <!-- Görseldeki geometrik desenin basit CSS simülasyonu -->
+                    <div class="pattern-box" style="background:#f1c40f;"></div>
+                    <div class="pattern-box" style="background:#e74c3c;"></div>
+                    <div class="pattern-box" style="background:#3498db;"></div>
+                    <div class="pattern-box" style="background:#2c3e50;"></div>
+                </div>
+                <div class="journal-spine"></div>
+            </div>
+            
+            <div class="journal" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);"></div>
+        </div>
+        
+        <div class="bottom-actions">
+            <button class="circle-btn">⋯</button>
+            <button class="circle-btn">↑</button>
+            <button class="circle-btn">🗑</button>
+            <button class="circle-btn">+</button>
         </div>
     </div>
 
-    <!-- Çizim Alanı -->
-    <canvas id="canvas"></canvas>
-
-    <!-- Alt Araç Kutusu -->
-    <div class="toolbar-container">
-        <div class="toolbar">
-            <!-- Üst Satır: Renkler ve Aksiyonlar -->
-            <div class="palette-row">
-                <button class="icon-btn sm">+</button>
-                <div class="colors" id="colorPalette">
-                    <div class="color-dot active" style="background: #2c3e50;" data-color="#2c3e50"></div>
-                    <div class="color-dot" style="background: #e74c3c;" data-color="#e74c3c"></div>
-                    <div class="color-dot" style="background: #f1c40f;" data-color="#f1c40f"></div>
-                    <div class="color-dot" style="background: #2ecc71;" data-color="#2ecc71"></div>
-                    <div class="color-dot" style="background: #3498db;" data-color="#3498db"></div>
-                    <div class="color-dot" style="background: #ffffff;" data-color="#ffffff"></div>
-                </div>
-                <button class="icon-btn sm" id="saveBtn">📥</button>
+    <!-- ÇİZİM EKRANI (Canvas View) -->
+    <div id="canvas-screen" class="screen paper-bg">
+        <!-- Üst Kontrol Çubuğu -->
+        <div class="top-nav">
+            <button id="closeBtn" class="icon-btn" title="Defterlere Dön">✕</button>
+            <div class="history-btns">
+                <button id="clearBtn" class="icon-btn" title="Sayfayı Temizle">🗑️</button>
+                <button id="undoBtn" class="icon-btn" title="Geri Al">↶</button>
             </div>
-            
-            <!-- Alt Satır: Fırçalar -->
-            <div class="tools-row" id="toolsRow">
-                <!-- Silgi -->
-                <div class="tool" data-tool="eraser">
-                    <svg viewBox="0 0 40 100"><rect x="5" y="10" width="30" height="90" rx="3" fill="#888"/><rect x="5" y="10" width="30" height="35" rx="3" fill="#555"/></svg>
+        </div>
+
+        <!-- Şeffaf Çizim Alanı -->
+        <canvas id="canvas"></canvas>
+
+        <!-- Alt Araç Kutusu -->
+        <div class="toolbar-container">
+            <div class="toolbar">
+                <div class="palette-row">
+                    <button class="icon-btn sm">+</button>
+                    <div class="colors" id="colorPalette">
+                        <div class="color-dot active" style="background: #2c3e50;" data-color="#2c3e50"></div>
+                        <div class="color-dot" style="background: #e74c3c;" data-color="#e74c3c"></div>
+                        <div class="color-dot" style="background: #f1c40f;" data-color="#f1c40f"></div>
+                        <div class="color-dot" style="background: #2ecc71;" data-color="#2ecc71"></div>
+                        <div class="color-dot" style="background: #3498db;" data-color="#3498db"></div>
+                        <div class="color-dot" style="background: #ffffff;" data-color="#ffffff"></div>
+                    </div>
+                    <button class="icon-btn sm" id="saveBtn">📥</button>
                 </div>
-                <!-- Kurşun Kalem -->
-                <div class="tool" data-tool="pencil">
-                    <svg viewBox="0 0 40 100"><polygon points="20,10 32,35 32,100 8,100 8,35" fill="#a0a0a0"/><polygon points="20,10 24,20 16,20" fill="#333"/><rect x="8" y="35" width="24" height="65" fill="#d4d4d4"/></svg>
-                </div>
-                <!-- Dolma Kalem -->
-                <div class="tool active" data-tool="pen">
-                    <svg viewBox="0 0 40 100"><path d="M15,35 L25,35 L22,10 L18,10 Z" fill="#ccc"/><path d="M19,15 L21,15 L21,25 L19,25 Z" fill="#333"/><rect x="10" y="35" width="20" height="65" fill="#2c3e50"/></svg>
-                </div>
-                <!-- Keçeli Kalem (Marker) -->
-                <div class="tool" data-tool="marker">
-                    <svg viewBox="0 0 40 100"><path d="M12,25 L28,25 L25,5 L15,5 Z" fill="#444"/><rect x="10" y="25" width="20" height="75" fill="#1a1a1a"/></svg>
-                </div>
-                <!-- Sulu Boya Fırçası -->
-                <div class="tool" data-tool="watercolor">
-                    <svg viewBox="0 0 40 100"><path d="M10,45 Q20,-5 30,45 Z" fill="#fcfcfc"/><rect x="12" y="45" width="16" height="8" fill="#8e44ad"/><rect x="10" y="53" width="20" height="47" fill="#34495e"/></svg>
+                
+                <div class="tools-row" id="toolsRow">
+                    <div class="tool" data-tool="eraser">
+                        <svg viewBox="0 0 40 100"><rect x="5" y="10" width="30" height="90" rx="3" fill="#888"/><rect x="5" y="10" width="30" height="35" rx="3" fill="#555"/></svg>
+                    </div>
+                    <div class="tool" data-tool="pencil">
+                        <svg viewBox="0 0 40 100"><polygon points="20,10 32,35 32,100 8,100 8,35" fill="#a0a0a0"/><polygon points="20,10 24,20 16,20" fill="#333"/><rect x="8" y="35" width="24" height="65" fill="#d4d4d4"/></svg>
+                    </div>
+                    <div class="tool active" data-tool="pen">
+                        <svg viewBox="0 0 40 100"><path d="M15,35 L25,35 L22,10 L18,10 Z" fill="#ccc"/><path d="M19,15 L21,15 L21,25 L19,25 Z" fill="#333"/><rect x="10" y="35" width="20" height="65" fill="#2c3e50"/></svg>
+                    </div>
+                    <div class="tool" data-tool="marker">
+                        <svg viewBox="0 0 40 100"><path d="M12,25 L28,25 L25,5 L15,5 Z" fill="#444"/><rect x="10" y="25" width="20" height="75" fill="#1a1a1a"/></svg>
+                    </div>
+                    <div class="tool" data-tool="watercolor">
+                        <svg viewBox="0 0 40 100"><path d="M10,45 Q20,-5 30,45 Z" fill="#fcfcfc"/><rect x="12" y="45" width="16" height="8" fill="#8e44ad"/><rect x="10" y="53" width="20" height="47" fill="#34495e"/></svg>
+                    </div>
                 </div>
             </div>
         </div>
@@ -64,5 +105,6 @@
     <script src="app.js"></script>
 </body>
 </html>
+
 
 
