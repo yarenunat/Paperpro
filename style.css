@@ -1,104 +1,131 @@
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 body {
     margin: 0;
     overflow: hidden;
-    background: #f4f4f4; /* Kağıt hissi veren hafif kırık beyaz */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    touch-action: none; /* Mobil cihazlarda ekranın kaymasını engeller */
+    background: #f8f8f6; /* Paper'ın o meşhur kırık beyaz tuval rengi */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
+    touch-action: none;
 }
 
 canvas {
     position: absolute;
     top: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
     cursor: crosshair;
-    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+}
+
+/* Üst Kontroller */
+.top-nav {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 10;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 10px;
+    transition: color 0.2s;
+}
+
+.icon-btn:hover { color: #000; }
+.icon-btn.sm { font-size: 16px; color: #aaa; }
+
+/* Alt Araç Kutusu */
+.toolbar-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    width: 90%;
+    max-width: 500px;
 }
 
 .toolbar {
-    position: fixed;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    background: rgba(255, 255, 255, 0.65);
-    padding: 12px 24px;
-    border-radius: 40px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0,0,0,0.05);
+    background: #2b2b2d; /* Görseldeki koyu gri mat renk */
+    border-radius: 18px;
+    padding: 15px 20px 0 20px;
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    transition: transform 0.3s ease;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
 }
 
-.tool-group, .action-group {
+/* Renk Paleti */
+.palette-row {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 10px;
 }
 
-.divider {
-    width: 2px;
-    height: 30px;
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 2px;
+.colors {
+    display: flex;
+    gap: 12px;
 }
 
-button {
-    background: transparent;
-    border: none;
-    color: #333;
-    font-size: 24px;
-    width: 44px;
-    height: 44px;
+.color-dot {
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s, border 0.2s;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.color-dot.active {
+    transform: scale(1.3);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+/* Fırçalar (Animasyonlu Kalem Kutusu) */
+.tools-row {
     display: flex;
     justify-content: center;
-    align-items: center;
-    transition: all 0.2s ease;
+    align-items: flex-end;
+    height: 70px;
+    gap: 15px;
+    overflow: visible;
 }
 
-button:hover {
-    background: rgba(0, 0, 0, 0.05);
-    transform: scale(1.1);
-}
-
-button:active {
-    transform: scale(0.95);
-}
-
-button.active {
-    background: #e0e0e0;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-}
-
-input[type="color"] {
-    -webkit-appearance: none;
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+.tool {
+    width: 40px;
+    height: 100px; /* Kalemlerin boyu */
     cursor: pointer;
-    padding: 0;
-    background: none;
-    overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: translateY(40px); /* Kalemler aşağıda saklı durur */
 }
 
-input[type="color"]::-webkit-color-swatch-wrapper {
-    padding: 0;
+.tool svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 -2px 5px rgba(0,0,0,0.2));
 }
 
-input[type="color"]::-webkit-color-swatch {
-    border: none;
-    border-radius: 50%;
+/* Seçili kalem yukarı çıkar */
+.tool.active {
+    transform: translateY(10px); 
 }
+
+.tool:hover:not(.active) {
+    transform: translateY(30px);
+}
+
+ 
 
 
