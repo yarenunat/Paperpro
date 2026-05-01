@@ -4,32 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Paper Pro</title>
-    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    
-    <div class="toolbar">
-        <div class="tool-group">
-            <button class="tool active" data-tool="pen" title="Dolma Kalem">✒️</button>
-            <button class="tool" data-tool="pencil" title="Kurşun Kalem">✏️</button>
-            <button class="tool" data-tool="watercolor" title="Sulu Boya">🖌️</button>
-            <button class="tool" data-tool="eraser" title="Silgi">🧽</button>
-        </div>
-        
-        <div class="divider"></div>
-        
-        <div class="action-group">
-            <input type="color" id="colorPicker" value="#1a1a1a" title="Renk Seç">
-            <button id="undoBtn" title="Geri Al">↩️</button>
-            <button id="clearBtn" title="Sayfayı Temizle">🗑️</button>
-            <button id="saveBtn" title="Yeni Sayfa / Kaydet">💾</button>
+    <!-- Üst Kontrol Çubuğu -->
+    <div class="top-nav">
+        <button id="clearBtn" class="icon-btn" title="Sayfayı Temizle">✕</button>
+        <div class="history-btns">
+            <button id="undoBtn" class="icon-btn" title="Geri Al">↶</button>
         </div>
     </div>
 
-    <script src="db.js"></script>
+    <!-- Çizim Alanı -->
+    <canvas id="canvas"></canvas>
+
+    <!-- Alt Araç Kutusu -->
+    <div class="toolbar-container">
+        <div class="toolbar">
+            <!-- Üst Satır: Renkler ve Aksiyonlar -->
+            <div class="palette-row">
+                <button class="icon-btn sm">+</button>
+                <div class="colors" id="colorPalette">
+                    <div class="color-dot active" style="background: #2c3e50;" data-color="#2c3e50"></div>
+                    <div class="color-dot" style="background: #e74c3c;" data-color="#e74c3c"></div>
+                    <div class="color-dot" style="background: #f1c40f;" data-color="#f1c40f"></div>
+                    <div class="color-dot" style="background: #2ecc71;" data-color="#2ecc71"></div>
+                    <div class="color-dot" style="background: #3498db;" data-color="#3498db"></div>
+                    <div class="color-dot" style="background: #ffffff;" data-color="#ffffff"></div>
+                </div>
+                <button class="icon-btn sm" id="saveBtn">📥</button>
+            </div>
+            
+            <!-- Alt Satır: Fırçalar -->
+            <div class="tools-row" id="toolsRow">
+                <!-- Silgi -->
+                <div class="tool" data-tool="eraser">
+                    <svg viewBox="0 0 40 100"><rect x="5" y="10" width="30" height="90" rx="3" fill="#888"/><rect x="5" y="10" width="30" height="35" rx="3" fill="#555"/></svg>
+                </div>
+                <!-- Kurşun Kalem -->
+                <div class="tool" data-tool="pencil">
+                    <svg viewBox="0 0 40 100"><polygon points="20,10 32,35 32,100 8,100 8,35" fill="#a0a0a0"/><polygon points="20,10 24,20 16,20" fill="#333"/><rect x="8" y="35" width="24" height="65" fill="#d4d4d4"/></svg>
+                </div>
+                <!-- Dolma Kalem -->
+                <div class="tool active" data-tool="pen">
+                    <svg viewBox="0 0 40 100"><path d="M15,35 L25,35 L22,10 L18,10 Z" fill="#ccc"/><path d="M19,15 L21,15 L21,25 L19,25 Z" fill="#333"/><rect x="10" y="35" width="20" height="65" fill="#2c3e50"/></svg>
+                </div>
+                <!-- Keçeli Kalem (Marker) -->
+                <div class="tool" data-tool="marker">
+                    <svg viewBox="0 0 40 100"><path d="M12,25 L28,25 L25,5 L15,5 Z" fill="#444"/><rect x="10" y="25" width="20" height="75" fill="#1a1a1a"/></svg>
+                </div>
+                <!-- Sulu Boya Fırçası -->
+                <div class="tool" data-tool="watercolor">
+                    <svg viewBox="0 0 40 100"><path d="M10,45 Q20,-5 30,45 Z" fill="#fcfcfc"/><rect x="12" y="45" width="16" height="8" fill="#8e44ad"/><rect x="10" y="53" width="20" height="47" fill="#34495e"/></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
+
 
