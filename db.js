@@ -1,37 +1,40 @@
 let db;
-const req = indexedDB.open("paperDB", 1);
+const request = indexedDB.open("paperDB", 1);
 
-req.onupgradeneeded = e => {
+request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("pages")) {
         db.createObjectStore("pages", { autoIncrement: true });
     }
 };
 
-req.onsuccess = e => {
+request.onsuccess = (e) => {
     db = e.target.result;
+    console.log("Veritabanı hazır.");
 };
 
-req.onerror = e => {
+request.onerror = (e) => {
     console.error("IndexedDB Hatası:", e.target.error);
 };
 
-function savePage(data) {
+// Sayfayı kaydetme fonksiyonu (Global olarak erişilebilir)
+window.savePage = function(imageDataURL) {
     if (!db) {
-        console.warn("Veritabanı henüz hazır değil.");
+        console.warn("Veritabanı henüz hazır değil, kayıt atlandı.");
         return;
     }
     const tx = db.transaction("pages", "readwrite");
     const store = tx.objectStore("pages");
     
-    // Görüntüyü kaydet
-    const request = store.add({
-        image: data,
+    const req = store.add({
+        image: imageDataURL,
         date: new Date().toISOString()
     });
 
-    request.onsuccess = () => {
-        console.log("Sayfa başarıyla kaydedildi!");
+    req.onsuccess = () => {
+        console.log("IndexedDB: Sayfa başarıyla kaydedildi.");
     };
-}
-
+    req.onerror = () => {
+        console.error("IndexedDB: Kayıt başarısız.");
+    };
+};
