@@ -8,7 +8,6 @@
 </head>
 <body>
 
-    <!-- DEFTER SEÇME EKRANI (Journal View) -->
     <div id="journal-screen" class="screen active">
         <div class="top-bar">
             <span class="logo">📚 Paper Store</span>
@@ -20,18 +19,15 @@
 
         <div class="header-text">
             <h1>Design Project</h1>
-            <p>56 Pages</p>
+            <p id="pageCountDisplay">56 Pages</p>
         </div>
 
-        <!-- Defterler (Carousel) -->
-        <div class="journals-container">
+        <div class="journals-container" id="journalsContainer">
             <div class="journal" style="background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);"></div>
             <div class="journal" style="background: url('https://www.transparenttextures.com/patterns/cubes.png'), #e74c3c;"></div>
             
-            <!-- Aktif Seçili Defter -->
             <div class="journal active-journal" id="openJournalBtn">
                 <div class="journal-cover">
-                    <!-- Görseldeki geometrik desenin basit CSS simülasyonu -->
                     <div class="pattern-box" style="background:#f1c40f;"></div>
                     <div class="pattern-box" style="background:#e74c3c;"></div>
                     <div class="pattern-box" style="background:#3498db;"></div>
@@ -47,13 +43,11 @@
             <button class="circle-btn">⋯</button>
             <button class="circle-btn">↑</button>
             <button class="circle-btn">🗑</button>
-            <button class="circle-btn">+</button>
+            <button class="circle-btn" id="createNewJournalBtn" title="Yeni Defter">+</button>
         </div>
     </div>
 
-    <!-- ÇİZİM EKRANI (Canvas View) -->
     <div id="canvas-screen" class="screen paper-bg">
-        <!-- Üst Kontrol Çubuğu -->
         <div class="top-nav">
             <button id="closeBtn" class="icon-btn" title="Defterlere Dön">✕</button>
             <div class="history-btns">
@@ -62,14 +56,14 @@
             </div>
         </div>
 
-        <!-- Şeffaf Çizim Alanı -->
         <canvas id="canvas"></canvas>
 
-        <!-- Alt Araç Kutusu -->
         <div class="toolbar-container">
             <div class="toolbar">
                 <div class="palette-row">
-                    <button class="icon-btn sm">+</button>
+                    <input type="file" id="stickerInput" accept="image/*" style="display: none;">
+                    <button class="icon-btn sm" id="addStickerBtn" title="Görsel/Sticker Ekle">🖼️</button>
+                    
                     <div class="colors" id="colorPalette">
                         <div class="color-dot active" style="background: #2c3e50;" data-color="#2c3e50"></div>
                         <div class="color-dot" style="background: #e74c3c;" data-color="#e74c3c"></div>
@@ -78,7 +72,7 @@
                         <div class="color-dot" style="background: #3498db;" data-color="#3498db"></div>
                         <div class="color-dot" style="background: #ffffff;" data-color="#ffffff"></div>
                     </div>
-                    <button class="icon-btn sm" id="saveBtn">📥</button>
+                    <button class="icon-btn sm" id="saveBtn" title="Manuel Kaydet">📥</button>
                 </div>
                 
                 <div class="tools-row" id="toolsRow">
@@ -102,9 +96,9 @@
         </div>
     </div>
 
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="db.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
-
-
-
