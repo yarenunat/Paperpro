@@ -1,116 +1,192 @@
-// --- BİLDİRİM SİSTEMİ (TOAST) ---
+// app.js
+
+// --- NETLİK İÇİN RETINA DPI AYARI ---
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const dpr = window.devicePixelRatio || 1; // Ekranın pixel oranı ( Retinalarda 2x veya 3x)
+
+function resizeCanvas() {
+    // Fiziksel boyutu (CSS) ekran kadar yap
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+
+    // Gerçek canvas boyutunu dpr ile çarpıp netleştir
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+
+    // Tüm çizim komutlarını dpr ile ölçeklendir
+    ctx.scale(dpr, dpr);
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas(); // İlk açılışta ölçekle
+
+// --- BİLDİRİM VE GEÇİŞLER (Aynı Mantık) ---
 function showToast(message) {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
-    container.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(-20px)';
-        toast.style.transition = 'all 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 2000);
+    toast.className = 'toast'; toast.textContent = message; container.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2000);
 }
 
-// --- EKRAN GEÇİŞLERİ ---
-const journalScreen = document.getElementById('journal-screen');
-const canvasScreen = document.getElementById('canvas-screen');
-const openJournalBtn = document.getElementById('openJournalBtn');
-const closeBtn = document.getElementById('closeBtn');
-
-openJournalBtn.addEventListener('click', () => {
-    journalScreen.classList.remove('active');
-    canvasScreen.classList.add('active');
-    resizeCanvas(); 
+document.getElementById('openJournalBtn').addEventListener('click', () => {
+    document.getElementById('journal-screen').classList.remove('active');
+    document.getElementById('canvas-screen').classList.add('active');
+    // Canvas ölçeklerini ve içeriğini tekrar kur
+    resizeCanvas();
+    if(undoStack.length > 0) {
+        const img = new Image(); img.src = undoStack[undoStack.length - 1];
+        img.onload = () => ctx.drawImage(img, 0, 0, canvas.width/dpr, canvas.height/dpr);
+    }
 });
 
-closeBtn.addEventListener('click', () => {
-    canvasScreen.classList.remove('active');
-    journalScreen.classList.add('active');
-    // Çıkarken son durumu kaydet
-    if(undoStack.length > 0) window.savePage(canvas.toDataURL());
+document.getElementById('closeBtn').addEventListener('click', () => {
+    document.getElementById('canvas-screen').classList.remove('active');
+    document.getElementById('journal-screen').classList.add('active');
+    if(undoStack.length > 0 && typeof window.savePage === "function") window.savePage(canvas.toDataURL());
 });
 
-// --- YENİ DEFTER OLUŞTURMA ---
-const createNewJournalBtn = document.getElementById('createNewJournalBtn');
-const journalsContainer = document.getElementById('journalsContainer');
-
-createNewJournalBtn.addEventListener('click', () => {
-    const newJournal = document.createElement('div');
-    newJournal.className = 'journal';
-    
-    // Rastgele estetik bir arka plan
-    const colors = [
-        '#a18cd1 0%, #fbc2eb 100%', 
-        '#84fab0 0%, #8fd3f4 100%', 
-        '#fccb90 0%, #d57eeb 100%',
-        '#e0c3fc 0%, #8ec5fc 100%'
-    ];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    newJournal.style.background = `linear-gradient(135deg, ${randomColor})`;
-    
-    newJournal.addEventListener('click', function() {
-        document.querySelectorAll('.journal').forEach(j => j.classList.remove('active-journal'));
-        this.classList.add('active-journal');
-        
-        setTimeout(() => {
-            journalScreen.classList.remove('active');
-            canvasScreen.classList.add('active');
-            resizeCanvas();
-            ctx.clearRect(0, 0, canvas.width, canvas.height); 
-            undoStack = []; 
-            saveState();
-        }, 300);
-    });
-
-    // Animasyonlu ekleme
-    newJournal.style.opacity = '0';
-    newJournal.style.transform = 'scale(0.5)';
-    journalsContainer.insertBefore(newJournal, createNewJournalBtn.parentNode);
-    
-    setTimeout(() => {
-        newJournal.style.opacity = '0.5';
-        newJournal.style.transform = 'scale(0.85)';
-    }, 50);
-    
-    showToast("Yeni defter oluşturuldu 📓");
-});
-
-// --- ÇİZİM MOTORU ---
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d", { willReadFrequently: true });
+// --- DOKULU FIRÇA MOTORU (STAMPING) ---
 let drawing = false;
-let currentTool = "pen";
+let currentTool = "fountain"; // Procreate fırçaları
 let currentColor = "#2c3e50";
 let lastX = 0, lastY = 0;
 let undoStack = [];
-let autoSaveTimeout; // Otomatik kayıt için zamanlayıcı
+let autoSaveTimeout;
 
-function resizeCanvas() {
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCanvas.width = canvas.width || window.innerWidth;
-    tempCanvas.height = canvas.height || window.innerHeight;
-    if(canvas.width) tempCtx.drawImage(canvas, 0, 0);
+// Fırça Dokularını Yükle (Stamp Images)
+// Proje klasörüne bu dosya adlarını eklemeniz gerekir (charcoal_stamp.png vb.)
+const brushTextures = {
+    fountain: createProgrammaticStamp('circle', 10), // Programlı stamp
+    ballpoint: createProgrammaticStamp('circle', 5, 0.9), // Daha ince tükenmez
+    charcoal: loadStampTexture('charcoal_stamp.png'), // DOKULU FIRÇA DOSYASI (Premium doku için şart)
+    eraser: createProgrammaticStamp('circle', 40)
+};
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(tempCanvas, 0, 0);
+// Eğer resim dosyası yoksa, Vanilla JS ile basit bir dokulu stamp oluşturur
+function createProgrammaticStamp(type, size, opacity = 1.0) {
+    const stamp = document.createElement('canvas');
+    stamp.width = size; stamp.height = size;
+    const sCtx = stamp.getContext('2d');
+    
+    sCtx.globalAlpha = opacity;
+    sCtx.fillStyle = '#000'; // Renk sonra değişecek
+    if(type === 'circle') {
+        sCtx.beginPath();
+        sCtx.arc(size/2, size/2, size/2, 0, Math.PI*2);
+        sCtx.fill();
+    }
+    return stamp;
 }
-window.addEventListener('resize', resizeCanvas);
 
-function saveState() {
-    if (undoStack.length > 15) undoStack.shift();
-    undoStack.push(canvas.toDataURL());
+// Gerçek bir doku dosyası yükler (En premium hissiyat)
+function loadStampTexture(url) {
+    const img = new Image();
+    img.src = url;
+    // Eğer dosya yoksa, programlı karakalem oluştur (Yedek)
+    img.onerror = () => { 
+        brushTextures.charcoal = createProgrammaticStamp('circle', 30, 0.2); 
+    };
+    return img;
 }
 
-// Araç ve Renk Seçimi
+// Renk Seçimi ve Fırça Rengini Güncelleme
+function getStamp(tool) {
+    const stampCanvas = brushTextures[tool];
+    if(!stampCanvas) return null;
+
+    // Eğer programlı stamp ise, renginicurrentColor ile boya
+    if(stampCanvas instanceof HTMLCanvasElement && tool !== 'eraser') {
+        const coloredStamp = document.createElement('canvas');
+        coloredStamp.width = stampCanvas.width; coloredStamp.height = stampCanvas.height;
+        const cCtx = coloredStamp.getContext('2d');
+        
+        cCtx.fillStyle = currentColor;
+        cCtx.fillRect(0, 0, stampCanvas.width, stampCanvas.height);
+        cCtx.globalCompositeOperation = "destination-in";
+        cCtx.drawImage(stampCanvas, 0, 0);
+        return coloredStamp;
+    }
+    // Eraser veya dosya dokusu ise olduğu gibi döndür (eraser Composite ile çözülecek)
+    return stampCanvas;
+}
+
+// El Hızına Duyarlı Çizim Algoritması (PRO motor)
+canvas.addEventListener("pointerdown", (e) => {
+    drawing = true;
+    lastX = e.clientX; lastY = e.clientY;
+    
+    // Nokta atışı (Damga)
+    const currentStamp = getStamp(currentTool);
+    if(!currentStamp) return;
+
+    if(currentTool === 'eraser') ctx.globalCompositeOperation = "destination-out";
+    else ctx.globalCompositeOperation = "source-over";
+
+    ctx.drawImage(currentStamp, lastX - currentStamp.width/2, lastY - currentStamp.height/2);
+});
+
+canvas.addEventListener("pointermove", (e) => {
+    if (!drawing) return;
+    const currentStamp = getStamp(currentTool);
+    if(!currentStamp) return;
+
+    if(currentTool === 'eraser') ctx.globalCompositeOperation = "destination-out";
+    else ctx.globalCompositeOperation = "source-over";
+
+    // Hız Hesaplama (Boşluğu kapatmak için)
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx);
+    const speed = distance; // Hız, mesafedir
+
+    // Fırça Dinamikleri (Fırçanın hızla değişimi)
+    let stampWidth = currentStamp.width;
+    let stampHeight = currentStamp.height;
+    let stampAlpha = 1.0;
+
+    switch(currentTool) {
+        case 'fountain': // Hızlı çizilirse incelir
+            stampWidth = stampHeight = Math.max(2, currentStamp.width - (speed * 0.1));
+            break;
+        case 'ballpoint': // Hep aynı kalır
+            break;
+        case 'charcoal': // Hızlı çizilirse dokusu artar, opaklık düşer
+            stampAlpha = Math.max(0.1, 0.4 - (speed * 0.01));
+            break;
+    }
+
+    // İki nokta arasındaki boşluğu (The Gap) damgalama ile doldurma
+    // Bu, "boşluk" sorununu çözer
+    for (let i = 0; i < distance; i += stampWidth * 0.25) { // Her çeyrek fırça boyunda bir stamp bas
+        const x = lastX + (Math.cos(angle) * i);
+        const y = lastY + (Math.sin(angle) * i);
+        
+        ctx.globalAlpha = stampAlpha;
+        ctx.drawImage(currentStamp, x - stampWidth/2, y - stampHeight/2, stampWidth, stampHeight);
+    }
+    ctx.globalAlpha = 1.0;
+
+    lastX = e.clientX;
+    lastY = e.clientY;
+});
+
+canvas.addEventListener("pointerup", () => {
+    if (drawing) {
+        drawing = false;
+        undoStack.push(canvas.toDataURL());
+        
+        // Otomatik Kayıt (Debounce)
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+            if (typeof window.savePage === "function") window.savePage(canvas.toDataURL());
+            showToast("Buluta kaydedildi ☁️");
+        }, 1500); 
+    }
+});
+
+// UI ve Araç Seçimi (Procreate Fırçaları)
 const tools = document.querySelectorAll('.tool');
-const colors = document.querySelectorAll('.color-dot');
-
 tools.forEach(tool => {
     tool.addEventListener('pointerdown', (e) => {
         e.stopPropagation();
@@ -120,167 +196,45 @@ tools.forEach(tool => {
     });
 });
 
-colors.forEach(color => {
-    color.addEventListener('pointerdown', (e) => {
+// Renkler (Aynı Mantık)
+const colorDots = document.querySelectorAll('.color-dot');
+colorDots.forEach(dot => {
+    dot.addEventListener('pointerdown', (e) => {
         e.stopPropagation();
-        colors.forEach(c => c.classList.remove('active'));
-        color.classList.add('active');
-        currentColor = color.dataset.color;
-        
-        if(currentTool === 'eraser') {
-            document.querySelector('.tool[data-tool="pen"]').dispatchEvent(new Event('pointerdown'));
-        }
+        colorDots.forEach(d => d.classList.remove('active'));
+        dot.classList.add('active');
+        currentColor = dot.dataset.color;
     });
 });
 
-function setupBrush(speed = 0) {
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.shadowBlur = 0;
-    ctx.globalCompositeOperation = "source-over";
-
-    switch(currentTool) {
-        case "pen":
-            ctx.strokeStyle = currentColor;
-            ctx.globalAlpha = 1.0;
-            ctx.lineWidth = Math.max(1.5, 5 - (speed * 0.15));
-            break;
-        case "pencil":
-            ctx.strokeStyle = currentColor;
-            ctx.globalAlpha = 0.5;
-            ctx.lineWidth = 2;
-            break;
-        case "marker":
-            ctx.strokeStyle = currentColor;
-            ctx.globalAlpha = 0.85;
-            ctx.lineWidth = 14;
-            break;
-        case "watercolor":
-            ctx.strokeStyle = currentColor;
-            ctx.globalAlpha = 0.05;
-            ctx.lineWidth = 40;
-            ctx.shadowColor = currentColor;
-            ctx.shadowBlur = 10;
-            break;
-        case "eraser":
-            ctx.globalCompositeOperation = "destination-out";
-            ctx.globalAlpha = 1.0;
-            ctx.lineWidth = 40;
-            break;
-    }
-}
-
-// Çizim Algoritması
-canvas.addEventListener("pointerdown", (e) => {
-    drawing = true;
-    lastX = e.clientX;
-    lastY = e.clientY;
-    
-    setupBrush();
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(lastX + 0.1, lastY + 0.1); 
-    ctx.stroke();
+// Geri Al ve Temizle (DPI Desteği ile)
+document.getElementById('undoBtn').addEventListener('click', () => {
+    if (undoStack.length > 1) {
+        undoStack.pop(); 
+        const img = new Image(); img.src = undoStack[undoStack.length - 1];
+        img.onload = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width/dpr, canvas.height/dpr); };
+    } else { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 });
 
-canvas.addEventListener("pointermove", (e) => {
-    if (!drawing) return;
-    const dx = e.clientX - lastX;
-    const dy = e.clientY - lastY;
-    const speed = Math.sqrt(dx * dx + dy * dy);
-    
-    setupBrush(speed);
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.clientX, e.clientY);
-    ctx.stroke();
-    
-    lastX = e.clientX;
-    lastY = e.clientY;
-});
-
-canvas.addEventListener("pointerup", () => {
-    if (drawing) {
-        drawing = false;
-        saveState();
-        
-        // Profesyonel Otomatik Kayıt (Debounce)
-        clearTimeout(autoSaveTimeout);
-        autoSaveTimeout = setTimeout(() => {
-            if (typeof window.savePage === "function") {
-                window.savePage(canvas.toDataURL());
-                showToast("Buluta kaydedildi ☁️");
-            }
-        }, 1500); // Kullanıcı 1.5 saniye duraklarsa kaydeder
-    }
-});
-
-// --- STICKER / GÖRSEL EKLEME ---
+// Resim Ekleme (DPI Desteği ile)
 const stickerInput = document.getElementById('stickerInput');
-const addStickerBtn = document.getElementById('addStickerBtn');
-
-addStickerBtn.addEventListener('click', () => stickerInput.click());
-
+document.getElementById('addStickerBtn').addEventListener('click', () => stickerInput.click());
 stickerInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
-    
+    const file = e.target.files[0]; if(!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
         const img = new Image();
         img.onload = () => {
-            let drawWidth = img.width;
-            let drawHeight = img.height;
-            const maxWidth = window.innerWidth * 0.5; // Ekranın yarısı kadar olabilir
-            
-            if (drawWidth > maxWidth) {
-                drawHeight = (maxWidth / drawWidth) * drawHeight;
-                drawWidth = maxWidth;
-            }
-
-            const x = (canvas.width - drawWidth) / 2;
-            const y = (canvas.height - drawHeight) / 2;
+            const maxWidth = (window.innerWidth * 0.5); // CSS boyutu
+            let dW = img.width, dH = img.height;
+            if(dW > maxWidth) { dH = (maxWidth/dW)*dH; dW = maxWidth; }
+            const x = (window.innerWidth - dW) / 2; const y = (window.innerHeight - dH) / 2;
             
             ctx.globalCompositeOperation = "source-over";
-            ctx.globalAlpha = 1.0;
-            ctx.drawImage(img, x, y, drawWidth, drawHeight);
-            
-            saveState();
-            showToast("Görsel eklendi 🖼️");
-            if (typeof window.savePage === "function") window.savePage(canvas.toDataURL());
+            ctx.drawImage(img, x, y, dW, dH);
+            undoStack.push(canvas.toDataURL());
         }
         img.src = event.target.result;
     }
     reader.readAsDataURL(file);
-    e.target.value = ''; 
 });
-
-// --- BUTON İŞLEVLERİ ---
-document.getElementById('undoBtn').addEventListener('click', () => {
-    if (undoStack.length > 1) {
-        undoStack.pop(); 
-        const img = new Image();
-        img.src = undoStack[undoStack.length - 1];
-        img.onload = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
-        };
-    } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-});
-
-document.getElementById('clearBtn').addEventListener('click', () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    saveState();
-    showToast("Sayfa temizlendi 🧹");
-});
-
-document.getElementById('saveBtn').addEventListener('click', () => {
-    if (typeof window.savePage === "function") {
-        window.savePage(canvas.toDataURL());
-        showToast("Manuel olarak kaydedildi ✅");
-    }
-});
-
-setTimeout(() => saveState(), 100);
